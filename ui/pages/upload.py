@@ -46,7 +46,7 @@ _LAST_MESSAGE = "ba_upload_message"
 #: raw name with underscores replaced, so a new field never renders as blank.
 FIELD_LABELS: dict[str, str] = {
     "invoice_number": "Invoice number",
-    "invoice_date": "Invoice date",
+    "invoice_date": "Invoice Date",
     "issue_date": "Issue date",
     "certificate_number": "Certificate number",
     "issuing_authority": "Issuing authority",
