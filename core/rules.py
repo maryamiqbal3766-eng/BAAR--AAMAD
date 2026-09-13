@@ -21,6 +21,7 @@ from collections.abc import Sequence
 from .schemas import (
     AssessmentState,
     CaseStatus,
+    CoverageAssessment,
     Finding,
     FindingLabel,
     HumanDecision,
@@ -139,7 +140,10 @@ def is_unresolved(finding: Finding) -> bool:
     return finding.human_decision not in RESOLVED_DECISIONS
 
 
-def case_status_for(items: Sequence[Finding | AssessmentState]) -> CaseStatus:
+def case_status_for(
+    items: Sequence[Finding | AssessmentState],
+    coverage: CoverageAssessment | None = None,
+) -> CaseStatus:
     """Derive the Passport's CASE STATUS field.
 
     Categorical, never numeric, never decided by an LLM. Accepts either
@@ -155,8 +159,15 @@ def case_status_for(items: Sequence[Finding | AssessmentState]) -> CaseStatus:
     READY FOR HUMAN REVIEW is deliberately the best attainable status. The
     system never declares a case "compliant" — that is the exporter's and the
     authorities' call, not ours.
+    `coverage` is optional and only consulted when there are no findings, to
+    tell two very different empty cases apart: one that has not been run, and
+    one that ran and found no source that speaks to this route. The second has
+    been assessed — the answer is simply that we cannot say — so it is
+    VERIFICATION REQUIRED, not NOT STARTED.
     """
     if not items:
+        if coverage is not None and not coverage.can_state_requirements:
+            return CaseStatus.VERIFICATION_REQUIRED
         return CaseStatus.NOT_STARTED
 
     open_states = [
