@@ -228,28 +228,101 @@ def identify_document_type(text: str) -> tuple[DocumentType, float]:
 # Field extraction
 # ---------------------------------------------------------------------------
 
-#: Labels are tried in order, so the most specific wording comes first.
-#: A label only matches when a separator follows it immediately, which is why
-#: "Exporter Address:" does not get picked up as "Exporter:".
+#: Labels are tried IN ORDER, most specific first, and the first one that
+#: yields a usable value wins. That ordering is what stops a bare "date"
+#: stealing the value from "Invoice Date", or "origin" from "Country of
+#: Origin" — put the precise wording above the loose one, always.
+#:
+#: These are SYNONYMS FOR THE SAME FIELD, not new fields. Real export paperwork
+#: is written by hundreds of different forwarders and every one of them names
+#: the same box differently; recognising "Sold To" as the buyer is reading the
+#: document, not guessing at it.
 FIELD_LABELS: dict[str, list[str]] = {
-    "invoice_number": ["invoice no", "invoice number", "invoice #", "inv no"],
-    "invoice_date": ["invoice date"],
-    "issue_date": ["issue date", "date of issue"],
-    "certificate_number": ["certificate no", "certificate number"],
-    "issuing_authority": ["issuing authority", "issued by"],
-    "packing_list_number": ["packing list no", "packing list number"],
-    "exporter_name": ["exporter", "shipper", "seller"],
-    "buyer_name": ["consignee", "buyer", "importer"],
-    "product_description": ["description of goods", "goods description", "description"],
-    "hs_code": ["hs code", "hs-code", "tariff code", "tariff heading"],
-    "country_of_origin": ["country of origin", "origin"],
-    "quantity": ["total quantity", "quantity", "qty"],
-    "declared_value": ["total value", "total amount", "invoice value"],
-    "incoterm": ["incoterm", "delivery terms", "terms of delivery"],
-    "packages": ["number of packages", "total packages", "packages"],
-    "gross_weight": ["gross weight"],
-    "net_weight": ["net weight"],
+    "invoice_number": [
+        "invoice no", "invoice number", "invoice #", "invoice ref",
+        "inv no", "inv #", "commercial invoice no", "commercial invoice number",
+        "invoice reference",
+    ],
+    "invoice_date": [
+        "invoice date", "date of invoice", "dated", "inv date", "date",
+    ],
+    "issue_date": ["issue date", "date of issue", "issued on"],
+    "certificate_number": [
+        "certificate no", "certificate number", "certificate #", "cert no",
+        "reference no",
+    ],
+    "issuing_authority": [
+        "issuing authority", "issued by", "certifying authority",
+        "chamber of commerce", "authority",
+    ],
+    "packing_list_number": [
+        "packing list no", "packing list number", "packing list #", "p/l no",
+        "pl no",
+    ],
+    "po_number": [
+        "po number", "po no", "p.o. no", "p/o no", "purchase order no",
+        "purchase order number", "purchase order", "order no", "order number",
+        "customer order no", "po #",
+    ],
+    # "from" and "to" are deliberately absent. They are prose, not labels:
+    # "Collected From: Sialkot" is not an exporter, and a document full of
+    # ordinary sentences would otherwise report one. A wrong value is worse
+    # than a missing one, so the loose wordings stay out.
+    "exporter_name": [
+        "exporter name", "exporter", "shipper name", "shipper", "seller",
+        "consignor", "supplier", "beneficiary",
+    ],
+    "buyer_name": [
+        "consignee name", "consignee", "buyer name", "buyer", "importer",
+        "sold to", "bill to", "ship to", "messrs", "customer",
+    ],
+    "product_description": [
+        "description of goods", "goods description", "description of items",
+        "commodity description", "particulars of goods", "nature of goods",
+        "goods", "commodity", "description",
+    ],
+    "hs_code": [
+        "hs code", "hs-code", "h.s. code", "hs no", "hts code", "tariff code",
+        "tariff heading", "commodity code", "customs tariff",
+    ],
+    "country_of_origin": [
+        "country of origin", "origin country", "made in", "origin",
+    ],
+    "country_of_destination": [
+        "country of destination", "destination country", "port of discharge",
+        "final destination", "destination",
+    ],
+    "quantity": [
+        "total quantity", "total qty", "quantity", "qty", "no of units",
+        "number of units", "units", "pieces", "pcs",
+    ],
+    "declared_value": [
+        "total value", "total amount", "invoice value", "total invoice value",
+        "grand total", "amount", "total",
+    ],
+    "incoterm": [
+        "incoterm", "incoterms", "delivery terms", "terms of delivery",
+        "trade terms", "shipment terms", "price terms",
+    ],
+    "packages": [
+        "number of packages", "total packages", "no of packages",
+        "total cartons", "no of cartons", "packages", "cartons", "pkgs",
+    ],
+    "gross_weight": [
+        "total gross weight", "gross weight", "gross wt", "g.w.", "gw",
+    ],
+    "net_weight": ["total net weight", "net weight", "net wt", "n.w.", "nw"],
 }
+
+#: Labels that mark the START of another value on the same line, so a value is
+#: cut short rather than swallowing the next column. Column headers that are
+#: not fields of ours are here too: a value must never run into "Unit Price".
+_BOUNDARY_EXTRA = [
+    "unit price", "rate", "amount", "currency", "marks and numbers", "marks",
+    "vessel", "flight", "port of loading", "port of discharge", "date",
+    "signature", "page", "address", "tel", "phone", "email", "ntn", "vat",
+    "gst", "eori", "rex", "total",
+]
 
 #: Only the fields each document type is actually expected to carry — we do
 #: not extract everything a document happens to contain.
@@ -257,11 +330,13 @@ FIELDS_BY_TYPE: dict[DocumentType, list[str]] = {
     DocumentType.COMMERCIAL_INVOICE: [
         "invoice_number",
         "invoice_date",
+        "po_number",
         "exporter_name",
         "buyer_name",
         "product_description",
         "hs_code",
         "country_of_origin",
+        "country_of_destination",
         "quantity",
         "declared_value",
         "incoterm",
@@ -269,10 +344,12 @@ FIELDS_BY_TYPE: dict[DocumentType, list[str]] = {
     DocumentType.PACKING_LIST: [
         "packing_list_number",
         "invoice_number",
+        "po_number",
         "exporter_name",
         "buyer_name",
         "product_description",
         "country_of_origin",
+        "country_of_destination",
         "quantity",
         "packages",
         "gross_weight",
@@ -285,7 +362,9 @@ FIELDS_BY_TYPE: dict[DocumentType, list[str]] = {
         "exporter_name",
         "buyer_name",
         "product_description",
+        "hs_code",
         "country_of_origin",
+        "country_of_destination",
         "quantity",
         "invoice_number",
     ],
@@ -304,15 +383,235 @@ def _first_number(text: str) -> str | None:
     return match.group(0).replace(",", "") if match else None
 
 
-def _find_labelled_value(lines: list[str], labels: list[str]) -> tuple[str, str] | None:
-    """First (value, whole line) whose line starts with one of the labels."""
-    for label in labels:
-        pattern = re.compile(rf"^\s*{re.escape(label)}\s*[:\-–—]\s*(.+)$", re.I)
-        for line in lines:
-            match = pattern.match(line)
-            if match and match.group(1).strip():
-                return match.group(1).strip(), line.strip()
-    return None
+#: Every label the extractor knows, longest first, used to find where one
+#: value ends and the next label begins on a shared line.
+_ALL_LABELS: list[str] = sorted(
+    {label for labels in FIELD_LABELS.values() for label in labels} | set(_BOUNDARY_EXTRA),
+    key=len,
+    reverse=True,
+)
+
+#: A label, then its separator. FOUR separator styles, because real documents
+#: use all four and the original extractor only understood the first:
+#:
+#:   "Invoice No: INV-1"      punctuation
+#:   "Invoice No    INV-1"    column alignment (two or more spaces, or a tab)
+#:   "No of Cartons 18"       a single space
+#:   "INVOICE NO"             nothing — the value is in the box underneath
+#:
+#: The single space is allowed ONLY when the next token contains a digit. That
+#: is what keeps "Exporter Address: ..." from being read as the exporter —
+#: "Address:" has no digit in it — while still reading "Purchase Order
+#: HLW-PO-88214". Losing that guard reintroduces the bug the strict original
+#: was written to avoid.
+_SEPARATOR = r"(?:\s*[:\-–—=]\s*|[ \t]{2,}|[ \t](?=\S*\d))"
+
+#: Optional box number in front of a label: "1. Consignor", "(3) Origin".
+_BOX_NUMBER = r"(?:\(?\d{1,2}[.)]\s*)?"
+
+_BOUNDARY = re.compile(
+    r"(?<![A-Za-z])(?:" + "|".join(re.escape(label) for label in _ALL_LABELS) + r")"
+    + _SEPARATOR,
+    re.I,
+)
+
+
+def _looks_like_a_label(line: str) -> bool:
+    """Is this line a label/heading rather than a value?
+
+    Used when a label sits alone above its value: we step down the document
+    until we reach something that is not itself another box title.
+    """
+    stripped = re.sub(rf"^{_BOX_NUMBER}", "", line.strip()).rstrip(":").strip()
+    if not stripped:
+        return True
+    lowered = stripped.lower()
+    if lowered in _ALL_LABELS:
+        return True
+    # A short ALL-CAPS line with no digits is a box heading, not a value.
+    return bool(
+        len(stripped) <= 30
+        and stripped.isupper()
+        and not any(ch.isdigit() for ch in stripped)
+    )
+
+
+def _trim_at_next_label(value: str) -> str:
+    """Cut a value where the next label starts on the same line.
+
+    Two-column forms put "Invoice No: INV-1    Date: 2026-09-02" on one line.
+    Without this the invoice number reads as "INV-1    Date: 2026-09-02" —
+    which is not a value anybody can compare against anything.
+
+    When the value begins with another label there is no value here at all:
+    "EXPORTER          Invoice No   SLC/INV/1" is the exporter's BOX TITLE
+    sharing a line with a different field. Returning "" sends the caller to
+    look underneath, which is where the exporter's name actually is. Returning
+    the text would report the invoice number as the exporter — a wrong value,
+    which is worse than a missing one.
+    """
+    match = _BOUNDARY.search(value)
+    if match:
+        return value[: match.start()].strip(" \t:-–—,;")
+    return value.strip()
+
+
+def _is_table_header(line: str) -> bool:
+    """Does this line name columns rather than state any value?
+
+    Two labels alone are not enough: a boxed form puts "EXPORTER" and
+    "Invoice No   SLC/INV/1" on one line, and that line DOES carry a value.
+    A genuine header row is labels and nothing else — so take the labels out
+    and see whether anything is left.
+    """
+    matches = list(_BOUNDARY_HEADER.finditer(line))
+    if len(matches) < 2:
+        return False
+    remainder = _BOUNDARY_HEADER.sub("", line)
+    return len(re.sub(r"[\s:|\-–—]", "", remainder)) <= 3
+
+
+@dataclass
+class _Candidate:
+    value: str
+    snippet: str
+    score: float
+
+
+def _candidates(lines: list[str], labels: list[str]) -> list[_Candidate]:
+    """Every place in the document this field might be stated, best first.
+
+    Collecting candidates rather than returning the first match matters: a
+    table's header row ("Qty   Unit Price") matches the label but yields no
+    number, and the original code gave up at that point instead of looking at
+    the rows underneath.
+    """
+    found: list[_Candidate] = []
+
+    for rank, label in enumerate(labels):
+        # Later synonyms are looser wordings, so they score lower.
+        base = 1.0 - (rank * 0.01)
+        pattern = re.compile(
+            rf"(?<![A-Za-z]){re.escape(label)}{_SEPARATOR}(?P<value>.*)$", re.I
+        )
+
+        for index, line in enumerate(lines):
+            match = pattern.search(line)
+            if match is None:
+                continue
+
+            # A label at the start of its line is likelier to be that line's
+            # subject than one mentioned halfway through a sentence.
+            at_line_start = match.start() <= 1
+            value = _trim_at_next_label(match.group("value"))
+
+            if value:
+                found.append(
+                    _Candidate(value, line.strip(), base + (0.2 if at_line_start else 0))
+                )
+                continue
+
+            # No value on this line. Look in the box underneath — unless this
+            # is a table's header row, in which case the line below is a data
+            # row belonging to several columns at once and reading it whole
+            # would report every column as this field's value.
+            if _is_table_header(line):
+                continue
+            for following in lines[index + 1 : index + 4]:
+                if _looks_like_a_label(following) or _is_table_header(following):
+                    continue
+                below = _trim_at_next_label(following)
+                if below:
+                    found.append(
+                        _Candidate(
+                            below, f"{line.strip()} / {following.strip()}", base - 0.1
+                        )
+                    )
+                break
+
+        # A bare label with no separator at all, sitting above its value —
+        # including the numbered boxes a certificate of origin uses
+        # ("1. Consignor", "3. Country of Origin").
+        exact = re.compile(rf"^\s*{_BOX_NUMBER}{re.escape(label)}\s*:?\s*$", re.I)
+        for index, line in enumerate(lines):
+            if not exact.match(line):
+                continue
+            for following in lines[index + 1 : index + 4]:
+                if _looks_like_a_label(following) or _is_table_header(following):
+                    continue
+                below = _trim_at_next_label(following)
+                if below:
+                    found.append(
+                        _Candidate(
+                            below, f"{line.strip()} / {following.strip()}", base - 0.1
+                        )
+                    )
+                break
+
+    found.sort(key=lambda c: -c.score)
+    return found
+
+
+def _table_candidates(lines: list[str], labels: list[str]) -> list[_Candidate]:
+    """Read a value out of a column, when the label is a column heading.
+
+    Handles the layout the label matcher cannot: a header row naming the
+    columns, and the figures underneath it. Column position is taken from
+    where the heading actually sits, so the columns may be in any order.
+
+    Deliberately conservative — it only reports a value when exactly one data
+    row is present. A multi-item invoice has several, and picking one of them,
+    or adding them up, would be BAAR-AAMAD deciding what the total is. Where
+    such a document states a total it is labelled, and the label matcher above
+    has already found it.
+    """
+    found: list[_Candidate] = []
+
+    for index, line in enumerate(lines):
+        # A header row names at least two columns.
+        headers = [m for m in _BOUNDARY_HEADER.finditer(line)]
+        if len(headers) < 2:
+            continue
+        target = next(
+            (m for m in headers if m.group(0).strip().lower() in labels), None
+        )
+        if target is None:
+            continue
+
+        column = target.start()
+        rows = []
+        for following in lines[index + 1 : index + 6]:
+            if _BOUNDARY_HEADER.search(following) and len(
+                list(_BOUNDARY_HEADER.finditer(following))
+            ) >= 2:
+                break  # another header: the table ended
+            if following.strip():
+                rows.append(following)
+        if len(rows) != 1:
+            continue  # zero rows, or several — say nothing rather than choose
+
+        cell = _cell_at(rows[0], column)
+        if cell:
+            found.append(_Candidate(cell, rows[0].strip(), 0.7))
+
+    return found
+
+
+_BOUNDARY_HEADER = re.compile(
+    r"(?<![A-Za-z])(?:" + "|".join(re.escape(label) for label in _ALL_LABELS) + r")(?![A-Za-z])",
+    re.I,
+)
+
+
+def _cell_at(row: str, column: int) -> str:
+    """The whitespace-delimited cell of `row` nearest to character `column`."""
+    best, best_distance = "", 10**6
+    for match in re.finditer(r"\S+(?:[ ]\S+)*?(?=[ ]{2,}|$)", row):
+        distance = abs(match.start() - column)
+        if distance < best_distance:
+            best, best_distance = match.group(0).strip(), distance
+    # Too far from the heading to be that column.
+    return best if best_distance <= 12 else ""
 
 
 def extract_fields(
@@ -320,32 +619,35 @@ def extract_fields(
 ) -> dict[str, ExtractedField]:
     """Pull the values BAAR-AAMAD needs out of the document text.
 
-    Deterministic: no model, no inference. A field that is not clearly
-    labelled is simply absent, which is an honest answer.
+    Deterministic: no model, no inference. Every value returned is a verbatim
+    span of the document. A field that is not clearly stated is simply absent,
+    which is an honest answer and the one the exporter is shown.
     """
     wanted = FIELDS_BY_TYPE.get(document_type, [])
     lines = [line for line in text.splitlines() if line.strip()]
     found: dict[str, ExtractedField] = {}
 
     for name in wanted:
-        hit = _find_labelled_value(lines, FIELD_LABELS[name])
-        if hit is None:
-            continue
-        raw_value, source_line = hit
+        labels = FIELD_LABELS[name]
+        candidates = _candidates(lines, labels) + _table_candidates(lines, labels)
 
-        value = raw_value
-        if name in NUMERIC_FIELDS:
-            number = _first_number(raw_value)
-            if number is None:
-                continue  # a quantity with no number in it is not a quantity
-            value = number
+        for candidate in candidates:
+            value = candidate.value
+            if name in NUMERIC_FIELDS:
+                number = _first_number(value)
+                if number is None:
+                    continue  # not a quantity; try the next candidate
+                value = number
+            if not value:
+                continue
 
-        found[name] = ExtractedField(
-            name=name,
-            value=value,
-            raw_snippet=source_line,
-            confidence=1.0,  # read verbatim from a labelled line
-        )
+            found[name] = ExtractedField(
+                name=name,
+                value=value,
+                raw_snippet=candidate.snippet,
+                confidence=round(min(candidate.score, 1.0), 2),
+            )
+            break
 
     return found
 
