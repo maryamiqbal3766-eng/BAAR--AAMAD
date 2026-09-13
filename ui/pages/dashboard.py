@@ -71,12 +71,21 @@ def _finding_row(case, finding) -> None:
 
 def render() -> None:
     case = state.current_case()
-    if case is None or not case.findings:
-        state.goto(state.Page.LANDING if case is None else state.Page.UPLOAD)
+    if case is None:
+        state.goto(state.Page.LANDING)
         st.rerun()
         return
 
-    status = case_status_for(case.findings)
+    # A case that ran and found no applicable source has no findings, and that
+    # is a result worth showing. Only bounce back to Upload when the case has
+    # not been run at all.
+    assessed = case.coverage is not None and not case.coverage.can_state_requirements
+    if not case.findings and not assessed:
+        state.goto(state.Page.UPLOAD)
+        st.rerun()
+        return
+
+    status = case_status_for(case.findings, case.coverage)
     theme.masthead(f"CASE {case.case_id} &middot; RUN {case.run_number}")
 
     st.markdown(
@@ -92,6 +101,19 @@ def render() -> None:
     # Before the findings, deliberately: what was checked has to be read
     # before what was found means anything.
     theme.coverage_banner(case.coverage)
+
+    if not case.findings:
+        theme.section("Requirements")
+        theme.note(
+            "No requirement could be stated for this shipment, because no "
+            "curated authoritative source covers this route. BAAR-AAMAD will "
+            "not guess at what applies. Everything about this consignment "
+            "needs to be established with your customs broker or the "
+            "competent authority before you ship.",
+            scope=True,
+        )
+        theme.disclaimer()
+        return
 
     counts = {}
     for finding in case.findings:
