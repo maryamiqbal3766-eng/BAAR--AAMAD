@@ -120,7 +120,7 @@ def build_passport(case: ExportCase) -> Passport:
         case_id=case.case_id,
         product=(profile.product_normalized or profile.product_raw) if profile else "",
         destination=profile.destination if profile else "",
-        case_status=case_status_for(case.findings),
+        case_status=case_status_for(case.findings, case.coverage),
         coverage=case.coverage,
         requirement_tally=tally_labels([f.label for f in case.findings]),
         key_issues=_key_issues(case),
