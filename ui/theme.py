@@ -506,6 +506,23 @@ CSS = f"""
     background: #0B4551; border-color: #0B4551; color: {CARD};
   }}
   .stButton > button[kind="primary"]:hover p {{ background: transparent; }}
+  /* A form's submit button is .stFormSubmitButton, not .stButton, and its
+     `kind` is "primaryFormSubmit". It was missed by the rules above and was
+     rendering ink-on-teal at about 1.4:1 — the same defect, one container over. */
+  .stFormSubmitButton > button {{
+    border-radius: 8px; font-weight: 650; font-size: .95rem;
+    padding: .6rem 1.25rem; border: 1px solid {LINE};
+  }}
+  .stFormSubmitButton > button[kind="primaryFormSubmit"],
+  .stFormSubmitButton > button[kind="primaryFormSubmit"] p {{
+    background: {ACCENT}; border-color: {ACCENT}; color: {CARD};
+  }}
+  .stFormSubmitButton > button[kind="primaryFormSubmit"] p {{ background: transparent; }}
+  .stFormSubmitButton > button[kind="primaryFormSubmit"]:hover,
+  .stFormSubmitButton > button[kind="primaryFormSubmit"]:hover p {{
+    background: #0B4551; border-color: #0B4551; color: {CARD};
+  }}
+  .stFormSubmitButton > button[kind="primaryFormSubmit"]:hover p {{ background: transparent; }}
   div[data-testid="stForm"] {{
     border: 1px solid {LINE}; border-radius: 10px;
     padding: 1.7rem 1.8rem .9rem; background: {CARD};
@@ -522,6 +539,56 @@ CSS = f"""
     background: {CARD}; border: 1px solid {LINE}; border-radius: 8px;
   }}
   .stCodeBlock, code {{ background: {PANEL}; }}
+
+  /* --- popovers: dropdown menus and the date picker ---------------------------
+     These render in a portal attached to <body>, OUTSIDE .stApp, so every rule
+     above misses them entirely. Left alone they take Streamlit's own theme,
+     which is how a dropdown on a cream page opened dark-on-dark.
+
+     Selectors are ARIA roles, not emotion class hashes: `st-emotion-cache-*`
+     names change between Streamlit releases, and this styling must not be one
+     upgrade away from breaking. `:has()` reaches the opaque surface that wraps
+     the menu; the role elements are also painted directly, so a browser
+     without `:has()` still gets a light menu rather than a transparent one. */
+  div:has(> [role="listbox"]),
+  div:has(> [role="application"]),
+  [role="listbox"],
+  [role="application"] {{
+    background: {CARD} !important;
+    color: {INK} !important;
+    border-color: {LINE} !important;
+  }}
+  [role="listbox"], [role="application"] {{ border-radius: 8px; }}
+
+  [role="option"], [role="gridcell"], [role="grid"] {{
+    background: transparent !important;
+    color: {INK} !important;
+  }}
+  [role="option"]:hover, [role="gridcell"]:hover {{
+    background: {PANEL} !important;
+    color: {INK} !important;
+  }}
+  [role="option"][aria-selected="true"],
+  [role="gridcell"][aria-selected="true"] {{
+    background: {ACCENT_SOFT} !important;
+    color: {ACCENT} !important;
+    font-weight: 650;
+  }}
+  [role="option"][data-focused], [role="option"][data-focus-visible],
+  [role="gridcell"][data-focused] {{
+    background: {PANEL} !important;
+    color: {INK} !important;
+  }}
+  /* Days outside the shown month, and any disabled entry. Muted, still AA. */
+  [role="gridcell"][data-outside-month], [aria-disabled="true"] {{
+    color: {FAINT} !important;
+  }}
+  /* The calendar's month/year steppers and its header controls. */
+  div:has(> [role="application"]) button {{
+    background: transparent !important;
+    color: {INK} !important;
+  }}
+  div:has(> [role="application"]) button:hover {{ background: {PANEL} !important; }}
 
   /* --- the dark-mode lock -----------------------------------------------------
      Re-stating the palette rather than trusting config.toml alone. A viewer
@@ -563,6 +630,22 @@ CSS = f"""
     .ba-step.is-now {{
       background: {ACCENT} !important; color: {CARD} !important;
     }}
+    /* Popovers again: they are portalled outside .stApp, so the rules above
+       in this block do not reach them either. */
+    div:has(> [role="listbox"]), div:has(> [role="application"]),
+    [role="listbox"], [role="application"] {{
+      background: {CARD} !important; color: {INK} !important;
+    }}
+    [role="option"], [role="gridcell"], [role="grid"] {{
+      background: transparent !important; color: {INK} !important;
+    }}
+    [role="option"]:hover, [role="gridcell"]:hover {{
+      background: {PANEL} !important; color: {INK} !important;
+    }}
+    [role="option"][aria-selected="true"], [role="gridcell"][aria-selected="true"] {{
+      background: {ACCENT_SOFT} !important; color: {ACCENT} !important;
+    }}
+    div:has(> [role="application"]) button {{ color: {INK} !important; }}
   }}
 </style>
 """
