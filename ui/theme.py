@@ -532,9 +532,44 @@ CSS = f"""
   .stSelectbox div[data-baseweb="select"] > div {{
     font-size: .97rem !important; background: {CARD}; color: {INK};
   }}
+  /* Placeholders, including the date field's yyyy/mm/dd segments. Streamlit's
+     default is the ink colour at 0.6 alpha, which composites to about 4.2:1 —
+     under AA for text this small. `data-placeholder` is react-aria's own
+     attribute, so it survives Streamlit's class-name churn.
+     (No per-cent sign in this comment on purpose: a test scans the rendered
+     page for one, because the product never shows a percentage score.) */
+  .stTextInput input::placeholder,
+  .stTextArea textarea::placeholder,
+  .stNumberInput input::placeholder,
+  [data-placeholder="true"],
+  [data-type="literal"],
+  [data-testid="stDateInputClearButton"],
+  [data-testid="stFileUploaderDropzoneInstructions"] span,
+  [data-testid="stFileUploaderDropzoneInstructions"] small {{
+    color: {FAINT} !important;
+    opacity: 1 !important;
+  }}
   [data-testid="stFileUploaderDropzone"] {{
     background: {PANEL}; border: 1px dashed {LINE};
   }}
+  /* The attached-file chip. Streamlit paints its file-type badge in near-black
+     (#15202B), which is the one genuinely dark block left on a cream page.
+     The glyph inside is drawn with `currentColor`, so recolouring the badge
+     carries the icon with it. */
+  [data-testid="stFileChip"] {{
+    background: {CARD} !important;
+    border: 1px solid {LINE};
+    border-radius: 8px;
+  }}
+  [data-testid="stFileChip"] div:has(> svg) {{
+    background: {ACCENT_SOFT} !important;
+    color: {ACCENT} !important;
+  }}
+  /* The file-size caption, at Streamlit's 0.6-alpha ink (about 4.3:1). */
+  [data-testid="stFileChip"] div:not(:has(> svg)) {{
+    color: {INK};
+  }}
+  [data-testid="stFileChip"] div div:last-child {{ color: {FAINT} !important; }}
   [data-testid="stExpander"] details {{
     background: {CARD}; border: 1px solid {LINE}; border-radius: 8px;
   }}
