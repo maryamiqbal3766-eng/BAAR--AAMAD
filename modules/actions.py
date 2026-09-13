@@ -46,7 +46,7 @@ DRAFT_TEMPLATES: dict[DocumentType, list[tuple[str, str]]] = {
         ("Country of origin", "document.country_of_origin"),
         ("Quantity", "document.quantity"),
         ("Invoice number", "profile.shipment.invoice_number"),
-        ("Invoice date", "profile.shipment.invoice_date"),
+        ("Invoice Date", "profile.shipment.invoice_date"),
     ],
     DocumentType.PACKING_LIST: [
         ("Exporter", "profile.exporter.name"),
@@ -62,7 +62,7 @@ DRAFT_TEMPLATES: dict[DocumentType, list[tuple[str, str]]] = {
         ("Consignee", "profile.shipment.buyer_name"),
         ("Consignee address", "profile.shipment.buyer_address"),
         ("Invoice number", "profile.shipment.invoice_number"),
-        ("Invoice date", "profile.shipment.invoice_date"),
+        ("Invoice Date", "profile.shipment.invoice_date"),
         ("Description of goods", "document.product_description"),
         ("Quantity", "document.quantity"),
         ("Declared value", "profile.shipment.declared_value"),
