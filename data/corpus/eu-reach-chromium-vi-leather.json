@@ -1,0 +1,80 @@
+{
+  "source_id": "eu-reach-301-2014",
+  "source_name": "Commission Regulation (EU) No 301/2014 — REACH Annex XVII, entry 47 (chromium VI in leather)",
+  "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014R0301",
+  "publisher": "European Union",
+  "retrieved_at": "2026-09-12",
+  "applies_to": {
+    "_comment": "The restriction is written for leather articles that touch the skin in normal use. Each entry below is a form of that article, listed so an exporter's own wording can be matched without the application holding a product vocabulary of its own. An entry matches only when every one of its words appears in the exporter's description, so 'bags' alone never reaches this source — we would not know what those bags are made of.",
+    "scope_label": "leather articles that touch the skin",
+    "products": [
+      "leather articles",
+      "leather article",
+      "leather goods",
+      "leather bags",
+      "leather handbags",
+      "leather backpacks",
+      "leather rucksacks",
+      "leather satchels",
+      "leather totes",
+      "leather briefcases",
+      "leather purses",
+      "leather wallets",
+      "leather belts",
+      "leather straps",
+      "leather gloves",
+      "leather jackets",
+      "leather garments",
+      "leather clothing",
+      "leather footwear",
+      "leather shoes",
+      "leather boots",
+      "leather sandals",
+      "leather watch straps",
+      "leather accessories",
+      "leather upholstery"
+    ],
+    "origins": ["any origin"],
+    "destinations": ["European Union"]
+  },
+  "chunks": [
+    {
+      "chunk_id": "eu-reach-301-2014#entry47p5",
+      "locator": "Annex XVII, entry 47, paragraph 5",
+      "text": "Leather articles coming into contact with the skin shall not be placed on the market where they contain chromium VI in concentrations equal to or greater than 3 mg/kg (0,0003 % by weight) of the total dry weight of the leather."
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "REQ-CHROMIUM-VI",
+      "title": "Chromium VI limit for leather that touches the skin",
+      "what_is_required": "Leather articles that come into contact with the skin must contain less than 3 mg/kg chromium VI, measured against the total dry weight of the leather.",
+      "why_required": "Chromium VI is a skin sensitiser. EU law restricts it in leather articles that touch the skin, and goods over the limit may not be placed on the EU market. Bag handles, shoulder straps and trims normally touch the skin.",
+      "when_it_applies": "Applies to leather articles, and to articles with leather parts, that come into contact with the skin when used as intended.",
+      "satisfying_evidence": [
+        "A test report from a laboratory showing chromium VI below 3 mg/kg for the leather used",
+        "A supplier declaration of conformity referencing REACH Annex XVII entry 47",
+        "Tannery documentation confirming a chrome-free or compliant tanning process"
+      ],
+      "needed_document_or_info": [
+        "Chromium VI test report for the leather used in this consignment",
+        "Or a supplier/tannery declaration referencing REACH Annex XVII entry 47"
+      ],
+      "expected_document_types": [],
+      "evidence_chunks": ["eu-reach-301-2014#entry47p5"],
+      "keywords": [
+        "leather",
+        "chromium",
+        "chrome",
+        "chemical",
+        "reach",
+        "skin",
+        "safety",
+        "restriction",
+        "bag",
+        "strap"
+      ],
+      "checks": []
+    }
+  ]
+}

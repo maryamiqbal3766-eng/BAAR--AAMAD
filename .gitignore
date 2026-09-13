@@ -1,0 +1,20 @@
+# SECRETS — never commit these.
+#
+# The Groq API key is read from the environment. Locally that means a .env
+# file; on Streamlit Community Cloud it means the Secrets panel. Neither ever
+# belongs in the repository, and neither is ever written into source, into the
+# PRD, or into anything this application renders.
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local scratch
+.preview/

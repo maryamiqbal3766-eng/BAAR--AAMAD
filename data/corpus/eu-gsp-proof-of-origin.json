@@ -1,0 +1,79 @@
+{
+  "source_id": "eu-gsp-rex-origin",
+  "source_name": "EU Generalised Scheme of Preferences — proof of origin, and the Registered Exporter (REX) system",
+  "source_url": "https://trade.ec.europa.eu/access-to-markets/en/content/generalised-scheme-preferences-gsp",
+  "publisher": "European Commission",
+  "retrieved_at": "2026-09-12",
+  "applies_to": {
+    "products": ["any goods"],
+    "origins": ["any origin"],
+    "destinations": ["European Union"]
+  },
+  "chunks": [
+    {
+      "chunk_id": "eu-gsp-rex-origin#proof",
+      "locator": "Generalised Scheme of Preferences (GSP) — proof of origin",
+      "text": "After 30 June 2020, the proof of origin to claim preferential tariff treatment under the GSP is a statement on origin issued by exporters who are registered in the beneficiary country in the Registered Exporter System (REX)."
+    },
+    {
+      "chunk_id": "eu-gsp-rex-origin#rex-principle",
+      "locator": "Registered Exporter (REX) system — overview",
+      "text": "The Registered Exporter (REX) system is a system that allows for the certification of the origin of goods based on the self-certification principle.",
+      "chunk_url": "https://taxation-customs.ec.europa.eu/online-services/online-services-and-databases-customs/registered-exporter-rex-system_en"
+    },
+    {
+      "chunk_id": "eu-gsp-rex-origin#rex-registration",
+      "locator": "Registered Exporter (REX) system — who may make out a statement on origin",
+      "text": "To be allowed to make out a statement on origin, the exporter must be a 'registered exporter' in the database of their national competent authorities.",
+      "chunk_url": "https://taxation-customs.ec.europa.eu/online-services/online-services-and-databases-customs/registered-exporter-rex-system_en"
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "REQ-PROOF-OF-ORIGIN",
+      "title": "Proof of origin for the consignment",
+      "what_is_required": "Evidence of where these goods originate. If you intend to claim preferential tariff treatment under the EU's Generalised Scheme of Preferences, the accepted proof of origin is a statement on origin made out by an exporter registered in the REX system — not a chamber-issued certificate of origin.",
+      "why_required": "Origin decides the duty rate applied at import. Since 30 June 2020 the EU accepts a REX statement on origin as the proof for GSP preference. A Certificate of Origin issued by a chamber of commerce still evidences origin for general purposes, but it is not the document that claims GSP preference.",
+      "when_it_applies": "Applies to every consignment for customs purposes, and specifically where preferential tariff treatment under the GSP is to be claimed.",
+      "satisfying_evidence": [
+        "A statement on origin from an exporter registered in the REX system, made on the invoice or another commercial document, where GSP preference is claimed",
+        "A Certificate of Origin evidencing the country of origin of the goods",
+        "Consistent country of origin across the shipment documents"
+      ],
+      "needed_document_or_info": [
+        "Certificate of Origin, or the statement on origin text if you are REX-registered",
+        "Your REX registration number, if you intend to claim GSP preference"
+      ],
+      "expected_document_types": ["CERTIFICATE_OF_ORIGIN"],
+      "evidence_chunks": [
+        "eu-gsp-rex-origin#proof",
+        "eu-gsp-rex-origin#rex-principle",
+        "eu-gsp-rex-origin#rex-registration"
+      ],
+      "keywords": [
+        "origin",
+        "certificate",
+        "preferential",
+        "tariff",
+        "duty",
+        "gsp",
+        "rex",
+        "statement on origin"
+      ],
+      "checks": [
+        {
+          "kind": "document_present",
+          "document_type": "CERTIFICATE_OF_ORIGIN",
+          "description": "A Certificate of Origin has been provided for this case"
+        },
+        {
+          "kind": "fields_present",
+          "document_type": "CERTIFICATE_OF_ORIGIN",
+          "fields": ["country_of_origin", "issuing_authority", "certificate_number"],
+          "description": "The certificate states the origin, the issuing body and its number"
+        }
+      ],
+      "verification_note": "Whether this consignment qualifies for GSP preferential treatment, and whether the exporter is REX-registered, cannot be determined from the uploaded documents. Confirm with your customs broker or the Trade Development Authority of Pakistan before claiming preference."
+    }
+  ]
+}

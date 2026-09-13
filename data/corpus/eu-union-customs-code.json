@@ -1,0 +1,163 @@
+{
+  "source_id": "eu-ucc-952-2013",
+  "source_name": "Union Customs Code — Regulation (EU) No 952/2013",
+  "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32013R0952",
+  "publisher": "European Union",
+  "retrieved_at": "2026-09-12",
+  "applies_to": {
+    "products": ["any goods"],
+    "origins": ["any origin"],
+    "destinations": ["European Union"]
+  },
+  "chunks": [
+    {
+      "chunk_id": "eu-ucc-952-2013#art15",
+      "locator": "Article 15(1)",
+      "text": "Any person directly or indirectly involved in the accomplishment of customs formalities shall provide those authorities with all the requisite documents and information, in an appropriate form."
+    },
+    {
+      "chunk_id": "eu-ucc-952-2013#art163",
+      "locator": "Article 163",
+      "text": "The supporting documents required for the application of the provisions governing the customs procedure for which the goods are declared shall be in the declarant's possession and at the disposal of the customs authorities at the time when the customs declaration is lodged."
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "REQ-COMMERCIAL-INVOICE",
+      "title": "Commercial Invoice supporting the customs declaration",
+      "what_is_required": "A commercial invoice for this shipment, identifying the goods, the parties, the quantity and the value.",
+      "why_required": "Customs use the commercial invoice to establish what is being imported, from whom, in what quantity and at what value. The declarant must have the supporting documents available when the declaration is lodged.",
+      "when_it_applies": "Applies to every commercial consignment entering the European Union.",
+      "satisfying_evidence": [
+        "A commercial invoice naming the exporter and the consignee",
+        "An invoice number and invoice date",
+        "A description of the goods and the quantity",
+        "The declared value of the consignment"
+      ],
+      "needed_document_or_info": [
+        "Commercial Invoice (PDF)"
+      ],
+      "expected_document_types": ["COMMERCIAL_INVOICE"],
+      "evidence_chunks": ["eu-ucc-952-2013#art15", "eu-ucc-952-2013#art163"],
+      "keywords": ["invoice", "customs", "declaration", "value", "supporting document"],
+      "checks": [
+        {
+          "kind": "document_present",
+          "document_type": "COMMERCIAL_INVOICE",
+          "description": "A Commercial Invoice has been provided for this case"
+        },
+        {
+          "kind": "fields_present",
+          "document_type": "COMMERCIAL_INVOICE",
+          "fields": [
+            "invoice_number",
+            "invoice_date",
+            "exporter_name",
+            "buyer_name",
+            "product_description",
+            "quantity",
+            "declared_value"
+          ],
+          "description": "The invoice carries the particulars customs need"
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-PACKING-LIST",
+      "title": "Packing List for the consignment",
+      "what_is_required": "A packing list showing how this consignment is made up — the goods, the quantity, the number of packages and the weights.",
+      "why_required": "The packing list is the supporting document customs and the carrier use to verify the physical consignment against the declared one.",
+      "when_it_applies": "Applies where goods are shipped in packages, which covers this consignment.",
+      "satisfying_evidence": [
+        "A packing list referencing the same invoice",
+        "The quantity of goods packed",
+        "The number of packages",
+        "Gross and net weight"
+      ],
+      "needed_document_or_info": [
+        "Packing List (PDF)"
+      ],
+      "expected_document_types": ["PACKING_LIST"],
+      "evidence_chunks": ["eu-ucc-952-2013#art163"],
+      "keywords": ["packing", "list", "packages", "weight", "consignment"],
+      "checks": [
+        {
+          "kind": "document_present",
+          "document_type": "PACKING_LIST",
+          "description": "A Packing List has been provided for this case"
+        },
+        {
+          "kind": "fields_present",
+          "document_type": "PACKING_LIST",
+          "fields": ["quantity", "packages"],
+          "description": "The packing list states the quantity and the number of packages"
+        }
+      ]
+    },
+    {
+      "requirement_id": "REQ-DOCUMENT-CONSISTENCY",
+      "title": "Shipment particulars must agree across your documents",
+      "what_is_required": "The documents describing this shipment must state the same particulars — the same quantity, the same invoice reference, the same parties and the same country of origin.",
+      "why_required": "Everyone involved in customs formalities must supply accurate information. Documents describing one shipment that contradict each other cannot all be accurate, and the difference has to be resolved before the consignment is declared.",
+      "when_it_applies": "Applies wherever two or more documents describe the same consignment.",
+      "satisfying_evidence": [
+        "The same quantity on the invoice and the packing list",
+        "The same invoice number referenced throughout",
+        "The same exporter and consignee named throughout",
+        "The same country of origin stated throughout"
+      ],
+      "needed_document_or_info": [
+        "Corrected document where the particulars differ"
+      ],
+      "expected_document_types": [
+        "COMMERCIAL_INVOICE",
+        "PACKING_LIST",
+        "CERTIFICATE_OF_ORIGIN"
+      ],
+      "evidence_chunks": ["eu-ucc-952-2013#art15"],
+      "keywords": ["consistent", "accurate", "quantity", "match", "contradiction"],
+      "checks": [
+        {
+          "kind": "fields_agree",
+          "field": "quantity",
+          "compare": "number",
+          "document_types": ["COMMERCIAL_INVOICE", "PACKING_LIST"],
+          "description": "The quantity is the same on the Commercial Invoice and the Packing List"
+        },
+        {
+          "kind": "fields_agree",
+          "field": "invoice_number",
+          "compare": "text",
+          "document_types": [
+            "COMMERCIAL_INVOICE",
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ],
+          "description": "Every document refers to the same invoice"
+        },
+        {
+          "kind": "fields_agree",
+          "field": "country_of_origin",
+          "compare": "text",
+          "document_types": [
+            "COMMERCIAL_INVOICE",
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ],
+          "description": "Every document states the same country of origin"
+        },
+        {
+          "kind": "fields_agree",
+          "field": "exporter_name",
+          "compare": "text",
+          "document_types": [
+            "COMMERCIAL_INVOICE",
+            "PACKING_LIST",
+            "CERTIFICATE_OF_ORIGIN"
+          ],
+          "description": "Every document names the same exporter"
+        }
+      ]
+    }
+  ]
+}
