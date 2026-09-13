@@ -312,3 +312,78 @@ def test_the_default_scope_message_names_no_product_or_market():
 )
 def test_route_description(args, expected):
     assert describe_route(*args) == expected
+
+
+# ---------------------------------------------------------------------------
+# The 15 judge-testable destinations
+# ---------------------------------------------------------------------------
+#
+# These are the routes the hackathon demo is exercised on. They are a TEST
+# SET, not a supported-country list: nothing in the application enumerates
+# them, destination remains free text, and a sixteenth country behaves exactly
+# like these do. What is asserted here is that every one is ACCEPTED and
+# answered honestly — never refused, and never given requirements we do not
+# hold a source for.
+
+JUDGE_DESTINATIONS = [
+    "Germany", "United Kingdom", "United States", "Canada", "France",
+    "Italy", "Netherlands", "Spain", "Belgium", "Australia",
+    "Japan", "United Arab Emirates", "Saudi Arabia", "China", "Bangladesh",
+]
+
+#: Of those, the ones inside the customs territory the corpus actually covers.
+IN_CORPUS_SCOPE = {"Germany", "France", "Italy", "Netherlands", "Spain", "Belgium"}
+
+
+@pytest.mark.parametrize("destination", JUDGE_DESTINATIONS)
+def test_every_judge_route_is_accepted_and_graded(destination, corpus):
+    """Accepted as a valid case, and graded — never refused outright."""
+    profile = profile_for("cotton garments", origin="Pakistan", destination=destination)
+    coverage = assess_coverage(profile, corpus)
+
+    assert profile.destination == destination
+    assert coverage.level in (
+        Coverage.COVERED, Coverage.PARTIALLY_COVERED, Coverage.NOT_COVERED
+    )
+    assert coverage.message
+    assert destination in coverage.route
+
+
+@pytest.mark.parametrize("destination", JUDGE_DESTINATIONS)
+def test_no_judge_route_gets_invented_requirements(destination, corpus):
+    """Being on the test list never buys a route requirements we cannot cite."""
+    profile = profile_for("cotton garments", origin="Pakistan", destination=destination)
+    result = build_requirements(profile, corpus=corpus, use_ai=False)
+
+    for requirement in result.payload["requirements"]:
+        assert requirement.evidence, "a requirement with no source reached the case"
+
+    if destination not in IN_CORPUS_SCOPE:
+        assert result.payload["coverage"].level is Coverage.NOT_COVERED
+        assert result.payload["requirements"] == []
+
+
+@pytest.mark.parametrize("destination", sorted(IN_CORPUS_SCOPE))
+def test_eu_judge_routes_are_covered_by_the_customs_sources(destination, corpus):
+    profile = profile_for("cotton garments", origin="Pakistan", destination=destination)
+    result = build_requirements(profile, corpus=corpus, use_ai=False)
+
+    assert result.ok
+    ids = {r.requirement_id for r in result.payload["requirements"]}
+    assert "REQ-COMMERCIAL-INVOICE" in ids
+    # Cotton is not leather: the chemical rule must not appear.
+    assert "REQ-CHROMIUM-VI" not in ids
+
+
+def test_the_demo_route_is_unchanged(corpus):
+    """Pakistan -> Germany with leather goods must behave exactly as before."""
+    profile = profile_for("Genuine leather handbags", origin="Pakistan", destination="Germany")
+    coverage = assess_coverage(profile, corpus)
+    result = build_requirements(profile, corpus=corpus, use_ai=False)
+
+    assert coverage.level is Coverage.COVERED
+    assert result.ok
+    assert {r.requirement_id for r in result.payload["requirements"]} == {
+        "REQ-CHROMIUM-VI", "REQ-COMMERCIAL-INVOICE", "REQ-DOCUMENT-CONSISTENCY",
+        "REQ-PACKING-LIST", "REQ-PROOF-OF-ORIGIN",
+    }
