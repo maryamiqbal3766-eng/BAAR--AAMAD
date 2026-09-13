@@ -151,7 +151,17 @@ def _stage_requirements(case: ExportCase, ctx: RunContext) -> str:
     case.coverage = result.payload.get("coverage")
 
     if not result.ok:
-        raise BaarAamadError("no requirements", user_message=result.reason)
+        # NOT COVERED is an ANSWER, not a failure. The corpus holds nothing for
+        # this route, which is a true and useful thing to tell an exporter —
+        # and stopping the pipeline here used to hide it behind an error
+        # screen, so a route we simply cannot advise on looked like a broken
+        # application.
+        #
+        # The case now runs to a Passport that states plainly that nothing
+        # could be assessed. No requirement is invented to fill the gap: there
+        # are zero requirements, zero findings, and the status is VERIFICATION
+        # REQUIRED, which is exactly what "we cannot tell you" means here.
+        return result.reason
 
     sources = result.payload.get("sources", [])
     message = (
@@ -441,4 +451,4 @@ def progress(case: ExportCase) -> tuple[int, int]:
 
 
 def status_of(case: ExportCase) -> CaseStatus:
-    return case_status_for(case.findings)
+    return case_status_for(case.findings, case.coverage)
