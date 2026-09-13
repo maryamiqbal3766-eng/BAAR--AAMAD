@@ -151,7 +151,7 @@ def render() -> None:
                 ("Buyer address", profile.shipment.buyer_address),
                 ("Shipment reference", profile.shipment.reference),
                 ("Invoice number", profile.shipment.invoice_number),
-                ("Invoice date", profile.shipment.invoice_date),
+                ("Invoice Date", profile.shipment.invoice_date),
                 ("Quantity", profile.shipment.declared_quantity),
                 ("Declared value", profile.shipment.declared_value),
                 ("Incoterm", profile.shipment.incoterm),
