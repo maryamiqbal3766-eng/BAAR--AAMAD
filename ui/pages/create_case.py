@@ -242,7 +242,7 @@ def render() -> None:
 
         col_h, col_i = st.columns(2)
         invoice_date = col_h.date_input(
-            "Invoice date", value=None, format="YYYY-MM-DD", key=key("invoice_date")
+            "Invoice Date", value=None, format="YYYY-MM-DD", key=key("invoice_date")
         )
         quantity = col_i.text_input(
             "Quantity *", key=key("quantity"), placeholder="e.g. 500"
