@@ -365,8 +365,15 @@ def test_a_failing_stage_preserves_the_case(profile, corpus, monkeypatch, run_co
     assert orchestrator.failed_stage(case) is not None
 
 
-def test_an_unsupported_market_fails_cleanly(corpus, run_context):
-    from core.schemas import CaseProfile
+def test_an_uncovered_market_completes_and_says_it_cannot_advise(corpus, run_context):
+    """A route we hold no source for is an ANSWER, not an error.
+
+    It used to fail the REQUIREMENTS stage, which put a route we simply cannot
+    advise on behind an error screen — indistinguishable, to the person
+    looking at it, from the application being broken. The case now runs to a
+    Passport that states plainly that nothing could be assessed.
+    """
+    from core.schemas import CaseProfile, CaseStatus, Coverage
 
     case = ExportCase(
         case_id="BA-010",
@@ -374,10 +381,40 @@ def test_an_unsupported_market_fails_cleanly(corpus, run_context):
     )
     outcomes = orchestrator.run_to_completion(case, ctx=run_context)
 
-    failed = [o for o in outcomes if o.status is StageStatus.FAILED]
-    assert failed
-    assert "cannot state the requirements" in failed[0].message
-    assert case.findings == []  # nothing was invented to fill the gap
+    assert [o for o in outcomes if o.status is StageStatus.FAILED] == []
+    assert all(
+        case.stage(name).status is StageStatus.COMPLETE
+        for name in orchestrator.STAGE_ORDER
+    )
+
+    # Honest about why, and nothing invented to fill the gap.
+    assert case.coverage.level is Coverage.NOT_COVERED
+    assert "cannot state the requirements" in case.stage(StageName.REQUIREMENTS).message
+    assert case.requirements == []
+    assert case.findings == []
+    assert case.checks == []
+
+    # "We cannot tell you" is verification, not "not started".
+    assert case.passport is not None
+    assert case.passport.case_status is CaseStatus.VERIFICATION_REQUIRED
+    assert case.passport.coverage.level is Coverage.NOT_COVERED
+
+
+def test_an_uncovered_route_never_invents_a_requirement(corpus, run_context):
+    from core.schemas import CaseProfile
+
+    for destination in ("United States", "Japan", "Australia", "Bangladesh"):
+        case = ExportCase(
+            case_id="BA-011",
+            profile=CaseProfile(
+                product_raw="cotton garments",
+                origin_country="Pakistan",
+                destination=destination,
+            ),
+        )
+        orchestrator.run_to_completion(case, ctx=run_context)
+        assert case.requirements == [], f"{destination} invented a requirement"
+        assert case.findings == [], f"{destination} invented a finding"
 
 
 def test_progress_reporting(full_case, run_context):
